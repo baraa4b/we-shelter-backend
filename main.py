@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from config import get_settings
 from db.client import close_db, init_db
 from db.indexes import ensure_indexes
-from routes import auth
+from routes import auth, dev
 from routes.admin import adoptions as admin_adoptions
 from routes.admin import animals as admin_animals
 from routes.admin import notes as admin_notes
@@ -63,6 +63,7 @@ def create_app(lifespan: Lifespan | None = default_lifespan) -> FastAPI:
     app.include_router(admin_notes.router)
     app.include_router(admin_statistics.router)
     app.include_router(admin_users.router)
+    app.include_router(dev.router)
 
     return app
 

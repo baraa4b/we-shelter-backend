@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     jwt_access_ttl_min: int = Field(default=30, alias="JWT_ACCESS_TTL_MIN")
     jwt_refresh_ttl_days: int = Field(default=7, alias="JWT_REFRESH_TTL_DAYS")
     allowed_origins: str = Field(default="*", alias="ALLOWED_ORIGINS")
+    dev_key: str = Field(default="", alias="DEV_KEY")
 
     @property
     def cors_origins(self) -> list[str]:
