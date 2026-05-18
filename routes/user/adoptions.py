@@ -1,5 +1,5 @@
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 
 from db.user import User
 from schemas.adoption import (
@@ -8,6 +8,7 @@ from schemas.adoption import (
     AdoptionStatus,
     AdoptionUpdateCreate,
 )
+from schemas.animal import ImageUploaded
 from schemas.common import Paginated
 from services import adoption_service
 from utils.deps import get_current_user
@@ -62,3 +63,23 @@ async def add_adoption_update(
 ) -> AdoptionRead:
     request = await adoption_service.add_update(user.id, request_id, payload)
     return AdoptionRead.model_validate(request)
+
+
+@router.post(
+    "/me/adoptions/{request_id}/images",
+    response_model=ImageUploaded,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_adoption_image(
+    request_id: PydanticObjectId,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+) -> ImageUploaded:
+    data = await file.read()
+    image_id, url = await adoption_service.upload_update_photo(
+        user_id=user.id,
+        request_id=request_id,
+        content_type=file.content_type or "application/octet-stream",
+        data=data,
+    )
+    return ImageUploaded(image_id=image_id, url=url)

@@ -4,7 +4,7 @@ from beanie import PydanticObjectId
 
 from db.adoption import AdoptionRequest, AdoptionUpdate
 from schemas.adoption import AdoptionCreate, AdoptionDecision, AdoptionStatus, AdoptionUpdateCreate
-from services import animal_service
+from services import animal_service, image_service
 from utils.errors import Conflict, Forbidden, NotFound
 from utils.pagination import paginate
 from utils.time import utc_now
@@ -107,3 +107,18 @@ async def add_update(
     request.updated_at = utc_now()
     await request.save()
     return request
+
+
+async def upload_update_photo(
+    user_id: PydanticObjectId,
+    request_id: PydanticObjectId,
+    content_type: str,
+    data: bytes,
+) -> tuple[PydanticObjectId, str]:
+    request = await get_for_user(user_id, request_id)
+    if request.status != "approved":
+        raise Forbidden("updates only allowed after approval")
+
+    image = await image_service.store(request.animal_id, content_type, data)
+    assert image.id is not None
+    return image.id, image_service.image_url(image.id)
